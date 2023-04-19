@@ -17,7 +17,7 @@ from handmocap.hand_bbox_detector import HandBboxDetector
 
 import renderer.image_utils as imu
 from renderer.viewer2D import ImShow
-import time, pickle
+import time
 
 
 def run_hand_mocap(args, bbox_detector, hand_mocap, visualizer):
@@ -27,8 +27,6 @@ def run_hand_mocap(args, bbox_detector, hand_mocap, visualizer):
     assert args.out_dir is not None, "Please specify output dir to store the results"
     cur_frame = args.start_frame
     video_frame = 0
-
-    wrist_pos = []
     while True:
         # load data
         load_bbox = False
@@ -101,7 +99,6 @@ def run_hand_mocap(args, bbox_detector, hand_mocap, visualizer):
             assert args.crop_type == 'no_crop'
             detect_output = bbox_detector.detect_hand_bbox(img_original_bgr.copy())
             body_pose_list, body_bbox_list, hand_bbox_list, raw_hand_bboxes = detect_output
-            # print(body_pose_list)
         
         # save the obtained body & hand bbox to json file
         if args.save_bbox_output:
@@ -114,16 +111,6 @@ def run_hand_mocap(args, bbox_detector, hand_mocap, visualizer):
         # Hand Pose Regression
         pred_output_list = hand_mocap.regress(
                 img_original_bgr, hand_bbox_list, add_margin=True)
-        
-        try:
-            # print(len(pred_output_list))
-            # if pred_output_list[0]["right_hand"]["pred_joints_img"][0]:
-            print(pred_output_list[0]["right_hand"]["pred_joints_smpl"][0])
-            wrist_pos.append(pred_output_list[0]["right_hand"]["pred_joints_smpl"][0].tolist())
-        except:
-            pass
-        # print(pred_output_list[0]["left_hand"]["pred_hand_pose"])
-        # print(pred_output_list[0]["left_hand"]["pred_joints_img"][0])
         assert len(hand_bbox_list) == len(body_bbox_list)
         assert len(body_bbox_list) == len(pred_output_list)
 
@@ -152,8 +139,7 @@ def run_hand_mocap(args, bbox_detector, hand_mocap, visualizer):
                 args, demo_type, image_path, body_bbox_list, hand_bbox_list, pred_output_list)
 
         print(f"Processed : {image_path}")
-    
-    pickle.dump(wrist_pos, open("test.pkl", "wb"))
+        
     #save images as a video
     if not args.no_video_out and input_type in ['video', 'webcam']:
         demo_utils.gen_video_out(args.out_dir, args.seq_name)

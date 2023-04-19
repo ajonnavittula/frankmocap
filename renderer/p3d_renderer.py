@@ -163,7 +163,6 @@ class Pytorch3dRenderer(object):
         rend_img = renderer(mesh)
         rend_img = rend_img[0].cpu().numpy()
 
-
         scale_ratio = render_size / bbox_size
         img_size_new = int(self.img_size * scale_ratio)
         bg_img_new = cv2.resize(bg_img, (img_size_new, img_size_new))
@@ -191,9 +190,8 @@ class Pytorch3dRenderer(object):
         maxColor = rend_img.max()
         rend_img *= 255 /maxColor #Make sure <1.0
         rend_img = rend_img[:, :, ::-1]
-
+        d1 = alpha * rend_img
+        d2 = (1.0 - alpha) * bg_img_new
         res_img = alpha * rend_img + (1.0 - alpha) * bg_img_new
-
         res_img = cv2.resize(res_img, (self.img_size, self.img_size))
-
         return res_img

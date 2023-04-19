@@ -8,11 +8,11 @@ class DemoOptions():
         parser = argparse.ArgumentParser()
         
         # parser.add_argument('--checkpoint', required=False, default=default_checkpoint, help='Path to pretrained checkpoint')
-        default_checkpoint_body_smpl ='./extra_data/body_module/pretrained_weights/2020_05_31-00_50_43-best-51.749683916568756.pt'
+        default_checkpoint_body_smpl ='./frankmocap/extra_data/body_module/pretrained_weights/2020_05_31-00_50_43-best-51.749683916568756.pt'
         parser.add_argument('--checkpoint_body_smpl', required=False, default=default_checkpoint_body_smpl, help='Path to pretrained checkpoint')
-        default_checkpoint_body_smplx ='./extra_data/body_module/pretrained_weights/smplx-03-28-46060-w_spin_mlc3d_46582-2089_2020_03_28-21_56_16.pt'
+        default_checkpoint_body_smplx ='./frankmocap/extra_data/body_module/pretrained_weights/smplx-03-28-46060-w_spin_mlc3d_46582-2089_2020_03_28-21_56_16.pt'
         parser.add_argument('--checkpoint_body_smplx', required=False, default=default_checkpoint_body_smplx, help='Path to pretrained checkpoint')
-        default_checkpoint_hand = "./extra_data/hand_module/pretrained_weights/pose_shape_best.pth"
+        default_checkpoint_hand = "./frankmocap/extra_data/hand_module/pretrained_weights/pose_shape_best.pth"
         parser.add_argument('--checkpoint_hand', required=False, default=default_checkpoint_hand, help='Path to pretrained checkpoint')
 
         # input options
@@ -34,7 +34,7 @@ class DemoOptions():
         parser.add_argument('--single_person', action='store_true', help='Reconstruct only one person in the scene with the biggest bbox')
         parser.add_argument('--no_display', action='store_true', help='Do not visualize output on the screen')
         parser.add_argument('--no_video_out', action='store_true', help='Do not merge rendered frames to video (ffmpeg)')
-        parser.add_argument('--smpl_dir', type=str, default='./extra_data/smpl/', help='Folder where smpl files are located.')
+        parser.add_argument('--smpl_dir', type=str, default='./frankmocap/extra_data/smpl/', help='Folder where smpl files are located.')
         parser.add_argument('--skip', action='store_true', help='Skip there exist already processed outputs')
         parser.add_argument('--video_url', type=str, default=None, help='URL of YouTube video, or image.')
         parser.add_argument('--download', '-d', action='store_true', help='Download YouTube video first (in webvideo folder), and process it')
@@ -53,9 +53,62 @@ class DemoOptions():
         parser.add_argument('--frankmocap_fast_mode', action='store_true', help="Use fast hand detection mode for whole body motion capture (frankmocap)")
 
         # renderer
-        parser.add_argument("--renderer_type", type=str, default="opengl", 
+        parser.add_argument("--renderer_type", type=str, default="pytorch3d", 
             choices=['pytorch3d', 'opendr', 'opengl_gui', 'opengl'], help="type of renderer to use")
 
+        # arguments to run with hilvil
+        parser.add_argument("--hand", type=str, default="right", 
+            choices=['right_hand', 'left_hand'], help="hand to track")
+        parser.add_argument("--data-dir", type=str, default="./data", 
+            help="Path for parent folder with images and depth info")
+
+
+        # arguments to run hand object detector
+        parser.add_argument('--dataset', dest='dataset',
+                      help='training dataset',
+                      default='pascal_voc', type=str)
+        parser.add_argument('--cfg', dest='cfg_file',
+                            help='optional config file',
+                            default='./hand_object_detector/cfgs/res101.yml', type=str)
+        parser.add_argument('--net', dest='net',
+                            help='vgg16, res50, res101, res152',
+                            default='res101', type=str)
+        parser.add_argument('--set', dest='set_cfgs',
+                            help='set config keys', default=None,
+                            nargs=argparse.REMAINDER)
+        parser.add_argument('--load_dir', dest='load_dir',
+                            help='directory to load models',
+                            default="./hand_object_detector/models")
+        parser.add_argument('--cuda', dest='cuda', 
+                            help='whether use CUDA',
+                            action='store_true')
+        parser.add_argument('--cag', dest='class_agnostic',
+                            help='whether perform class_agnostic bbox regression',
+                            action='store_true')
+        parser.add_argument('--parallel_type', dest='parallel_type',
+                            help='which part of model to parallel, 0: all, 1: model before roi pooling',
+                            default=0, type=int)
+        parser.add_argument('--checksession', dest='checksession',
+                            help='checksession to load model',
+                            default=1, type=int)
+        parser.add_argument('--checkepoch', dest='checkepoch',
+                            help='checkepoch to load network',
+                            default=8, type=int)
+        parser.add_argument('--checkpoint', dest='checkpoint',
+                            help='checkpoint to load network',
+                            default=132028, type=int)
+        parser.add_argument('--bs', dest='batch_size',
+                            help='batch_size',
+                            default=1, type=int)
+        parser.add_argument('--vis', dest='vis',
+                            help='visualization mode',
+                            default=True)
+        parser.add_argument('--thresh_hand',
+                            type=float, default=0.5,
+                            required=False)
+        parser.add_argument('--thresh_obj', default=0.5,
+                            type=float,
+                            required=False)
         self.parser = parser
     
 

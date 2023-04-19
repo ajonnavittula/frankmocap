@@ -5,9 +5,11 @@ import os.path as osp
 import cv2
 from collections import OrderedDict
 import mocap_utils.general_utils as gnu
+# import general_utils as gnu
 import numpy as np
 import json
 import subprocess as sp
+import re
 
 
 def setup_render_out(out_dir):
@@ -111,7 +113,11 @@ def setup_input(args):
         return input_type, cap
 
     elif input_type =='image_dir':
+        def num_sort(input_string):
+            return list(map(int, re.findall(r'\d+', input_string)))[0]
+
         image_list = gnu.get_all_files(args.input_path, image_exts, "relative") 
+        image_list = sorted(image_list, key=num_sort)
         image_list = [ osp.join(args.input_path, image_name) for image_name in image_list ]
         __img_seq_setup(args)
         return input_type, image_list
@@ -298,13 +304,13 @@ def save_pred_to_pkl(
  
 
 def save_res_img(out_dir, image_path, res_img):
-    out_dir = osp.join(out_dir, "rendered")
+    out_dir = osp.join(out_dir, "hand_detect")
     img_name = osp.basename(image_path)
     img_name = img_name[:-4] + '.jpg'           #Always save as jpg
     res_img_path = osp.join(out_dir, img_name)
     gnu.make_subdir(res_img_path)
     cv2.imwrite(res_img_path, res_img)
-    print(f"Visualization saved: {res_img_path}")
+    # print(f"Visualization saved: {res_img_path}")
 
 
 def gen_video_out(out_dir, seq_name):

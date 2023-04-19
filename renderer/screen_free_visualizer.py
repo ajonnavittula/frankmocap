@@ -57,12 +57,10 @@ class Visualizer(object):
         rend_img = np.ones((self.input_size, self.input_size, 3))
         h, w = img_original.shape[:2]
         rend_img[:h, :w, :] = img_original
-
         for mesh in pred_mesh_list:
             verts = mesh['vertices']
             faces = mesh['faces']
             rend_img = self.renderer.render(verts, faces, rend_img)
-
         res_img = rend_img[:h, :w, :]
         return res_img
 
@@ -80,29 +78,23 @@ class Visualizer(object):
     ):
         # init
         res_img = input_img.copy()
-
         # draw raw hand bboxes
         if raw_hand_bboxes is not None and vis_raw_hand_bbox:
             res_img = draw_raw_bbox(input_img, raw_hand_bboxes)
             # res_img = np.concatenate((res_img, raw_bbox_img), axis=1)
-
         # draw 2D Pose
         if body_pose_list is not None and vis_body_pose:
             res_img = draw_arm_pose(res_img, body_pose_list)
-
         # draw body bbox
         if body_bbox_list is not None:
             body_bbox_img = draw_body_bbox(input_img, body_bbox_list)
             res_img = body_bbox_img
-
         # draw hand bbox
         if hand_bbox_list is not None:
             res_img = draw_hand_bbox(res_img, hand_bbox_list)
-        
         # render predicted meshes
         if pred_mesh_list is not None:
             rend_img = self.__render_pred_verts(input_img, pred_mesh_list)
             res_img = np.concatenate((res_img, rend_img), axis=1)
             # res_img = rend_img
-        
         return res_img
