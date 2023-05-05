@@ -52,12 +52,14 @@ def get_hand_traj(args):
     print("Found {} images in directory".format(len(input_data)))
     
     hand_traj = []
+    timestamp_bias = int(re.findall(r'\d+', input_data[0])[0])
+    sampling_time = 1/ 30.
     for image_idx in tqdm(range(len(input_data)), dynamic_ncols=True):
         image_num = input_data[image_idx]
         # print("loading img {}".format(image_num))
         image_path = os.path.join(image_dir, image_num)
         img_original_bgr = cv2.imread(image_path)
-
+        # print(img_original_bgr.shape)
         detect_output = bbox_detector.detect_hand_bbox(img_original_bgr.copy())
         body_pose_list, body_bbox_list, hand_bbox_list, raw_hand_bboxes = detect_output
 
@@ -69,7 +71,11 @@ def get_hand_traj(args):
         pred_output_list = hand_mocap.regress(
                 img_original_bgr, hand_bbox_list, add_margin=True)
 
+        # print(pred_output_list[0])
         if args.hand not in pred_output_list[0]:
+            print("{} not found in {}".format(args.hand, image_path))
+            continue
+        if pred_output_list[0][args.hand] is None:
             print("{} not found in {}".format(args.hand, image_path))
             continue
 
@@ -90,14 +96,21 @@ def get_hand_traj(args):
         depth_filename = os.path.splitext(image_num)[0] + ".pkl"
         depth_path = os.path.join(args.data_dir, "depth", depth_filename)
         depth_data = pickle.load(open(depth_path, "rb"), encoding="latin1")
-        depth = np.mean(depth_data[pixel_coords[0]-1:pixel_coords[0]+1, pixel_coords[1]-1:pixel_coords[1]+1])
-
-        if depth == 0:
+        # print(np.any(depth_data==np.nan))
+        # depth_data = depth_data.astype(float)
+        # print(depth_data.shape)
+        # print(pixel_coords)
+        # aa
+        # print(depth_data[pixel_coords[0]-1:pixel_coords[0]+1, pixel_coords[1]-1:pixel_coords[1]+1])
+        depth = np.mean(depth_data[pixel_coords[1]-1:pixel_coords[1]+1, pixel_coords[0]-1:pixel_coords[0]+1])
+        # print(depth)
+        if depth == 0 or depth > 220.:
             print("Depth information corrupted for {}, ignoring image".format(image_path))
             continue
         orientation = pred_output_list[0][args.hand]["pred_hand_pose"][0, :3]
         orientation = orientation.squeeze()
         point = dict()
+        point["timestamp"] = (int(re.findall(r'\d+', image_num)[0]) - timestamp_bias) * sampling_time
         point["pixel_coords"] = pixel_coords
         point["depth"] = depth
         point["orientation"] = orientation
