@@ -109,6 +109,22 @@ class DemoOptions():
         parser.add_argument('--thresh_obj', default=0.5,
                             type=float,
                             required=False)
+
+        # params to run object tags
+        parser.add_argument("--config", type=str, default="./GroundedSegmentAnything/GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py",
+                            help="path to config file")
+        parser.add_argument("--grounded_checkpoint", type=str, default="./GroundedSegmentAnything/groundingdino_swint_ogc.pth",
+                            help="path to checkpoint file")
+        parser.add_argument("--tag2text_checkpoint", type=str, default="./GroundedSegmentAnything/tag2text_swin_14m.pth",
+                            help="path to checkpoint file")
+        parser.add_argument("--sam_checkpoint", type=str, default="./GroundedSegmentAnything/sam_vit_b_01ec64.pth", help="path to checkpoint file")
+        parser.add_argument("--split", default=",", type=str, help="split for text prompt")
+        parser.add_argument("--box_threshold", type=float, default=0.25, help="box threshold")
+        parser.add_argument("--text_threshold", type=float, default=0.2, help="text threshold")
+        parser.add_argument("--iou_threshold", type=float, default=0.5, help="iou threshold")
+
+        parser.add_argument("--device", type=str, default="cuda", help="running on cpu only!, default=False")
+
         self.parser = parser
     
 
