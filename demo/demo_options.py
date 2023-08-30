@@ -57,7 +57,7 @@ class DemoOptions():
             choices=['pytorch3d', 'opendr', 'opengl_gui', 'opengl'], help="type of renderer to use")
 
         # arguments to run with hilvil
-        parser.add_argument("--hand", type=str, default="right", 
+        parser.add_argument("--hand", type=str, default="right_hand", 
             choices=['right_hand', 'left_hand'], help="hand to track")
         parser.add_argument("--data-dir", type=str, default="./data", 
             help="Path for parent folder with images and depth info")
@@ -125,9 +125,25 @@ class DemoOptions():
 
         parser.add_argument("--device", type=str, default="cuda", help="running on cpu only!, default=False")
 
+        # params to control which parts of the pipeline are run
+        parser.add_argument('--no_hand_traj', dest='no_hand_traj',
+                            help='Do not run hand trajectory extraction',
+                            action='store_true')
+        parser.add_argument('--no_hand_contact', dest='no_hand_contact',
+                            help='do not run hand contact detection',
+                            action='store_true')
+        parser.add_argument('--no_tag_extract', dest='no_tag_extract',
+                            help='Do not extract most frequent tag',
+                            action='store_true')
+        parser.add_argument('--add_mesh', dest='add_mesh',
+                            help='Add mesh to hand trajectory',
+                            action='store_true')
+
         self.parser = parser
     
 
     def parse(self):
         self.opt = self.parser.parse_args()
+        self.opt.cuda = True
+        self.opt.device = "cuda"
         return self.opt

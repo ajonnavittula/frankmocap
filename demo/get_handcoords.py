@@ -20,6 +20,7 @@ from renderer.viewer2D import ImShow
 import time, pickle
 import re
 from tqdm import tqdm
+from renderer.screen_free_visualizer import Visualizer
 
 
 def num_sort(input_string):
@@ -39,10 +40,6 @@ def get_hand_traj(args):
     hand_mocap = HandMocap(args.checkpoint_hand, args.smpl_dir, device = device)
     # Set Visualizer
     assert args.renderer_type == "pytorch3d", "Only supports pytorch3d as visualizer"
-    if args.renderer_type in ['pytorch3d', 'opendr']:
-        from renderer.screen_free_visualizer import Visualizer
-    else:
-        from renderer.visualizer import Visualizer
     visualizer = Visualizer(args.renderer_type)
 
     # start regress
@@ -56,57 +53,48 @@ def get_hand_traj(args):
     sampling_time = 1/ 30.
     for image_idx in tqdm(range(len(input_data)), dynamic_ncols=True):
         image_num = input_data[image_idx]
-        # print("loading img {}".format(image_num))
         image_path = os.path.join(image_dir, image_num)
         img_original_bgr = cv2.imread(image_path)
-        # print(img_original_bgr.shape)
         detect_output = bbox_detector.detect_hand_bbox(img_original_bgr.copy())
         body_pose_list, body_bbox_list, hand_bbox_list, raw_hand_bboxes = detect_output
-
+ 
         if len(hand_bbox_list) < 1:
-            print(f"No hand deteced: {image_path}")
+            tqdm.write(f"No hand deteced: {image_path}")
             continue
     
         # Hand Pose Regression
         pred_output_list = hand_mocap.regress(
                 img_original_bgr, hand_bbox_list, add_margin=True)
 
-        # print(pred_output_list[0])
-        if args.hand not in pred_output_list[0]:
-            print("{} not found in {}".format(args.hand, image_path))
+        # hand not found, ignore imahe
+        if args.hand not in pred_output_list[0] or pred_output_list[0][args.hand] is None:
+            tqdm.write("{} not found in {}".format(args.hand, image_path))
             continue
-        if pred_output_list[0][args.hand] is None:
-            print("{} not found in {}".format(args.hand, image_path))
-            continue
-
-        pred_mesh_list = demo_utils.extract_mesh_from_output(pred_output_list)
+        
+        # add mesh to visualization
+        if args.add_mesh:
+            pred_mesh_list = demo_utils.extract_mesh_from_output(pred_output_list)
+        else:
+            pred_mesh_list = None
 
         # visualize
-        res_img = visualizer.visualize(
-            img_original_bgr, 
-            pred_mesh_list = pred_mesh_list, 
-            hand_bbox_list = hand_bbox_list)
+        res_img = visualizer.visualize(img_original_bgr, pred_mesh_list = pred_mesh_list, hand_bbox_list = hand_bbox_list)
         
         demo_utils.save_res_img(args.data_dir, image_path, res_img)
 
         # get pixel coords and depth
         # we get the hand from the list and then the wrist (x,y) position from hand
-        pixel_coords = pred_output_list[0][args.hand]["pred_joints_img"][0][:2]
+        pixel_coords = pred_output_list[0][args.hand]["pred_joints_img"][9][:2]
         pixel_coords = [int(coords) for coords in pixel_coords]
-        depth_filename = os.path.splitext(image_num)[0] + ".pkl"
+        depth_filename = image_num.replace("png", "pkl")
         depth_path = os.path.join(args.data_dir, "depth", depth_filename)
         depth_data = pickle.load(open(depth_path, "rb"), encoding="latin1")
-        # print(np.any(depth_data==np.nan))
-        # depth_data = depth_data.astype(float)
-        # print(depth_data.shape)
-        # print(pixel_coords)
-        # aa
-        # print(depth_data[pixel_coords[0]-1:pixel_coords[0]+1, pixel_coords[1]-1:pixel_coords[1]+1])
+
         depth = np.mean(depth_data[pixel_coords[1]-1:pixel_coords[1]+1, pixel_coords[0]-1:pixel_coords[0]+1])
-        # print(depth)
-        if depth == 0 or depth > 220.:
-            print("Depth information corrupted for {}, ignoring image".format(image_path))
+        if depth == 0 or depth > 300.:
+            tqdm.write("Depth information corrupted for {}, ignoring image".format(image_path))
             continue
+        
         orientation = pred_output_list[0][args.hand]["pred_hand_pose"][0, :3]
         orientation = orientation.squeeze()
         point = dict()

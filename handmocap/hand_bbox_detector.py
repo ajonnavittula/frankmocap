@@ -162,7 +162,6 @@ class Ego_Centric_Detector(BodyPoseEstimator):
         fasterRCNN.cuda()
         fasterRCNN.eval()
         self.hand_detector = fasterRCNN
-    
 
     # part of the code comes from https://github.com/ddshan/hand_object_detector/demo.py
     def __get_image_blob(self, im):
@@ -334,6 +333,7 @@ class HandBboxDetector(object):
         """
         output = self.model.detect_hand_bbox(img_bgr)
         body_pose_list, body_bbox_list, hand_bbox_list, raw_hand_bboxes = output
+
 
         # convert raw_hand_bboxes from (x0, y0, x1, y1) to (x0, y0, w, h)
         if raw_hand_bboxes is not None:

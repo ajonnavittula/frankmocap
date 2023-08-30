@@ -8,6 +8,7 @@ Visualizing 3D humans via Opengl
 
 """
 import numpy as np
+import time
 import cv2
 import torch
 from renderer import viewer2D#, glViewer, glRenderer
@@ -114,7 +115,7 @@ class Visualizer(object):
             if rend_img is not None:
                 res_img = np.concatenate((res_img, rend_img), axis=1)
             # res_img = rend_img
-        
+
         return res_img
         
     def __render_pred_verts(self, img_original, pred_mesh_list):
