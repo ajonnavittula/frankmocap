@@ -8,7 +8,8 @@ import json
 import torch
 from torchvision.transforms import Normalize
 
-from demo.demo_options import DemoOptions
+sys.path.append(os.path.abspath('/home/collab/vil/HILVIL/frankmocap/demo'))
+from demo_options import DemoOptions
 import mocap_utils.general_utils as gnu
 import mocap_utils.demo_utils as demo_utils
 

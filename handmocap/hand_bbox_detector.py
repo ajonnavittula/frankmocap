@@ -50,8 +50,8 @@ class Third_View_Detector(BodyPoseEstimator):
     def __load_hand_detector(self):
          # load cfg and model
         cfg = get_cfg()
-        cfg.merge_from_file("./frankmocap/detectors/hand_only_detector/faster_rcnn_X_101_32x8d_FPN_3x_100DOH.yaml")
-        cfg.MODEL.WEIGHTS = './frankmocap/extra_data/hand_module/hand_detector/model_0529999.pth' # add model weight here
+        cfg.merge_from_file("/home/collab/vil/HILVIL/frankmocap/detectors/hand_only_detector/faster_rcnn_X_101_32x8d_FPN_3x_100DOH.yaml")
+        cfg.MODEL.WEIGHTS = '/home/collab/vil/HILVIL/frankmocap/extra_data/hand_module/hand_detector/model_0529999.pth' # add model weight here
         cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.3  # 0.3 , use low thresh to increase recall
         self.hand_detector = DefaultPredictor(cfg)
 
@@ -152,7 +152,7 @@ class Ego_Centric_Detector(BodyPoseEstimator):
         fasterRCNN.create_architecture()
         self.classes = classes
 
-        checkpoint_path = "extra_data/hand_module/hand_detector/faster_rcnn_1_8_132028.pth"
+        checkpoint_path = "/home/collab/vil/HILVIL/frankmocap/extra_data/hand_module/hand_detector/faster_rcnn_1_8_132028.pth"
         checkpoint = torch.load(checkpoint_path)
         assert osp.exists(checkpoint_path), "Hand checkpoint does not exist"
         fasterRCNN.load_state_dict(checkpoint['model'])
